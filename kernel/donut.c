@@ -55,6 +55,7 @@ void donut_canvas_init(void) {
         grid++;
 
     int cell = NN / grid;
+    int scale = cell / 80
 
     for (int i = 0; i < N_DONUTS; i++) {
         int row = i / grid;
@@ -93,14 +94,20 @@ static PIXEL int2rgb (int value);
 // Q7: quest: "donuts in sync"
 void donut_pixel(int idx) {
     int sA = 1024, cA = 0, sB = 1024, cB = 0, _;
-    
+    int frame = 0;
+
     while (1) {
-        memset(b[idx], 0, 1760);  // text buffer 0: black bkgnd
-        memset(z[idx], 127, 1760); // z buffer
+
+        memset(b[idx], 0, 1760);
+        memset(z[idx], 127, 1760);
+
         int sj = 0, cj = 1024;
+
         for (int j = 0; j < 90; j++) {
-            int si = 0, ci = 1024; // sine and cosine of angle i
+            int si = 0, ci = 1024;
+
             for (int i = 0; i < 324; i++) {
+
                 int R1 = 1, R2 = 2048, K2 = 5120 * 1024;
 
                 int x0 = R1 * cj + R2,
@@ -113,68 +120,84 @@ void donut_pixel(int idx) {
                     x7 = cj * si >> 10,
                     x = 25 + 30 * (cB * x1 - sB * x4) / x6,
                     y = 12 + 15 * (cB * x4 + sB * x1) / x6,
-                    lumince = (((-cA * x7 - cB * ((-sA * x7 >> 10) + x2) - ci * (cj * sB >> 10)) >> 10) - x5); 
-                    // fxl: range likely: <0..~1408, scale to 0..255
-                    lumince = lumince<0? 0 : lumince/5; 
-                    lumince = lumince<255? lumince : 255; 
+                    lumince = (((-cA * x7
+                                - cB * ((-sA * x7 >> 10) + x2)
+                                - ci * (cj * sB >> 10)) >> 10) - x5);
 
-                int o = x + 80 * y; // fxl: 80 chars per row
+                lumince = lumince < 0 ? 0 : lumince / 5;
+                lumince = lumince < 255 ? lumince : 255;
+
+                int o = x + 80 * y;
                 signed char zz = (x6 - K2) >> 15;
-                if (22 > y && y > 0 && x > 0 && 80 > x && zz < z[idx][o]) { // fxl: z depth will control visibility
+
+                if (22 > y && y > 0 &&
+                    x > 0 && 80 > x &&
+                    zz < z[idx][o]) {
+
                     z[idx][o] = zz;
-                    // luminance_index is now in the range 0..11 (8*sqrt(2) = 11.3)
-                    // now we lookup the character corresponding to the
-                    // luminance and plot it in our output:
                     b[idx][o] = lumince;
                 }
-                R(5, 8, ci, si) // rotate i
+
+                R(5, 8, ci, si)
             }
-            R(9, 7, cj, sj) // rotate j
+
+            R(9, 7, cj, sj)
         }
+
         R(5, 7, cA, sA);
         R(5, 8, cB, sB);
 
-        // screen_clear(idx);   // not needed
+        /* ===== Dynamic Grid Layout ===== */
+
         int grid = 1;
         while (grid * grid < N_DONUTS)
             grid++;
-            
+
         int cell = NN / grid;
 
-        // dynamic scaling
+        int row = idx / grid;
+        int col = idx % grid;
+
+        int offsetx = col * cell;
+        int offsety = row * cell;
+
         int scale = cell / 80;
         if (scale < 1)
             scale = 1;
 
-        int offsetx = xoff[idx], offsety = yoff[idx]; 
-        
         int y = 0, x = 0;
-        for (int k = 0; 1761 > k; k++) {
+
+        for (int k = 0; k < 1760; k++) {
+
             if (k % 80) {
+
                 if (x < 50) {
-                    // scale x by K, y by 2K (so we have a round donut)
-                    //   then offset by (offsetx,offsety)
-                    //int xx=x*K+offsetx, yy=y*K*2+offsety;
-                    int xx = x*scale + offsetx;
-                    int yy = y*scale*2 + offsety;
-                    // PIXEL clr = b[k]; // blue only
-                    PIXEL clr = int2rgb(b[idx][k]); // to a color spectrum
-                    // W("fb %lx idx %d xx %d yy %d pitch %d",
-                    //     (unsigned long)the_fb.fb, idx, xx, yy, the_fb.pitch);
-                    // expand to a neighborhood of 4 pixels
-                    setpixel(the_fb.fb, xx, yy, the_fb.pitch, clr);
-                    setpixel(the_fb.fb, xx+1, yy, the_fb.pitch, clr);
-                    setpixel(the_fb.fb, xx, yy+1, the_fb.pitch, clr);
-                    setpixel(the_fb.fb, xx+1, yy+1, the_fb.pitch, clr);
+
+                    int xx = x * scale + offsetx;
+                    int yy = y * scale * 2 + offsety;
+
+                    PIXEL clr = int2rgb(b[idx][k]);
+
+                    setpixel(the_fb.fb, xx,     yy,     the_fb.pitch, clr);
+                    setpixel(the_fb.fb, xx + 1, yy,     the_fb.pitch, clr);
+                    setpixel(the_fb.fb, xx,     yy + 1, the_fb.pitch, clr);
+                    setpixel(the_fb.fb, xx + 1, yy + 1, the_fb.pitch, clr);
                 }
+
                 x++;
-            } else { 
+
+            } else {
                 y++;
                 x = 1;
             }
         }
-        /* STUDENT: TODO: your code here */
-        yield();
+
+        /* ===== Q7: Frame-Level Yield ===== */
+
+        frame++;
+
+        if (frame % 5 == 0)
+            yield();
     }
 }
 
