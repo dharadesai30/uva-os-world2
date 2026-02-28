@@ -14,6 +14,7 @@
 #include "debug.h"
 #include "plat.h"
 #include "utils.h"
+#include "sched.h"
 
 #define PIXELSIZE 4 /*ARGB, expected by /dev/fb*/
 typedef unsigned int PIXEL;
