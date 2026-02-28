@@ -173,6 +173,7 @@ void donut_pixel(int idx) {
             }
         }
         /* STUDENT: TODO: your code here */
+        yield();
     }
 }
 
