@@ -95,6 +95,17 @@ static PIXEL int2rgb (int value);
 void donut_pixel(int idx) {
     int sA = 1024, cA = 0, sB = 1024, cB = 0, _;
     int frame = 0;
+    int speed_divisor;
+    
+    /* Different speed per donut */
+    if (idx == 0)
+        speed_divisor = 1;      // fastest
+    else if (idx == 1)
+        speed_divisor = 2;      // medium
+    else if (idx == 2)
+        speed_divisor = 4;      // slower
+    else
+        speed_divisor = 8;      // slowest
 
     while (1) {
 
@@ -144,9 +155,10 @@ void donut_pixel(int idx) {
             R(9, 7, cj, sj)
         }
 
-        R(5, 7, cA, sA);
-        R(5, 8, cB, sB);
-
+        if (frame % speed_divisor == 0) {
+            R(5, 7, cA, sA);
+            R(5, 8, cB, sB);
+}
         /* ===== Dynamic Grid Layout ===== */
 
         int grid = 1;
@@ -195,9 +207,7 @@ void donut_pixel(int idx) {
         /* ===== Q7: Frame-Level Yield ===== */
 
         frame++;
-
-        if (frame % 5 == 0)
-            yield();
+        yield();
     }
 }
 
