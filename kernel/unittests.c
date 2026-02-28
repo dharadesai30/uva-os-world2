@@ -303,6 +303,7 @@ void test_kern_reader_writer() {
 
 extern void donut(int idx); 	//donut.c
 extern void donut_canvas_init(void); //donut.c don't forget to init canvas -- once
+extern void donut_pixel(int idx); 	//donut.c
 void kern_task_donut(int idx) {
 	printf("process started EL %d, pid %d idx %d\r\n", 
         get_el(), myproc()->pid, idx);
@@ -331,6 +332,15 @@ void test_kern_tasks_donut(void) {
                    name);
                    
         BUG_ON(res < 0);
+
+        if (i == 0)
+            task[res]->priority = 1;      // slow
+        else if (i == 1)
+            task[res]->priority = 3;      // medium
+        else if (i == 2)
+            task[res]->priority = 6;      // fast
+        else
+            task[res]->priority = 10;     // fastest
     }
 
 	// current we are on the "init" task. 
@@ -347,6 +357,9 @@ void test_kern_tasks_donut(void) {
     // qemu -- make all donuts turn at same time (virtually), 
     //      turn at diff rates 
     //      -- a donut skips certain % of frames (yield multiple times)
+    			/* ===== Q6: SET DIFFERENT PRIORITIES ===== */
+
+
 }
 
 

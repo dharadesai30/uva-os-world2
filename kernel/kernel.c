@@ -16,6 +16,8 @@ extern void test_kern_tasks_donut();
 extern void test_kern_task_mgmt(); 
 extern void test_kern_reader_writer(); 
 extern void donut(int x, int y); 	//donut.c
+extern void donut_canvas_init(void); //donut.c
+extern void test_kern_tasks_donut(void);
 
 struct cpu cpus[NCPU]; 
 
@@ -64,47 +66,5 @@ void init(int arg/*ignored*/) {
 	//test_kern_tasks_print();
 	// Q4: quest: "two donuts"
 	/* STUDENT: TODO: your code here */	// test_kern_task_mgmt();
-	void test_kern_tasks_donut(void) {
-    char name[10]; 
-    int res; 
-
-    donut_canvas_init(); 
-    
-    // spawn N donut tasks 
-    for (int i = 0; i < N_DONUTS; i++) {
-        snprintf(name, 10, "donut-%d", i); 
-
-        res = copy_process(PF_KTHREAD,
-                   (unsigned long)&kern_task_donut,
-                   (unsigned long)i,
-                   name);
-                   
-        BUG_ON(res < 0);
-
-        /* ===== Q6: SET DIFFERENT PRIORITIES ===== */
-        if (i == 0)
-            task[res]->priority = 1;      // slow
-        else if (i == 1)
-            task[res]->priority = 3;      // medium
-        else if (i == 2)
-            task[res]->priority = 6;      // fast
-        else
-            task[res]->priority = 10;     // fastest
-    }
-
-    while (1)
-        yield();
-}
-	// test_kern_reader_writer(); 
-
-	while (1) {
-		wpid = wait(0 /* does not care about status */); 
-		if (wpid < 0) {
-			W("init: wait failed with %d", wpid);
-			panic("init: maybe no child. has nothing to do. bye"); 
-		} else {
-			W("wait returns pid=%d", wpid);
-			/* a parentless task  */
-		}
-	}
+	test_kern_tasks_donut();
 }
