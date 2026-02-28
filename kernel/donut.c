@@ -26,13 +26,12 @@ static inline void setpixel(unsigned char *buf, int x, int y, int pit, PIXEL p) 
 }
 
 // canvas layout, 2x2
-static const int xoff[] = {0,NN/2,0,NN/2};
-static const int yoff[] = {0,0,NN/2,NN/2};
-_Static_assert(N_DONUTS <= NELEM(xoff));
+static  int xoff[N_DONUTS];
+static  int yoff[N_DONUTS];
 
-enum {K=4}; // donut scale factor, see code below
-_Static_assert(80*K  <= NN/2); // columns
-_Static_assert(22*K*2  <= NN/2); // rows
+//enum {K=4}; // donut scale factor, see code below
+//_Static_assert(80*K  <= NN/2); // columns
+//_Static_assert(22*K*2  <= NN/2); // rows
 
 static char b[N_DONUTS][1760];        // text buffer (W 80 H 22?
 static signed char z[N_DONUTS][1760]; // z buffer
@@ -49,6 +48,19 @@ void donut_canvas_init(void) {
 
     if (fb_init() != 0)
         BUG();
+
+    int grid = 1;
+    while (grid * grid < N_DONUTS)
+        grid++;
+
+    int cell = NN / grid;
+
+    for (int i = 0; i < N_DONUTS; i++) {
+        int row = i / grid;
+        int col = i % grid;
+        xoff[i] = col * cell;
+        yoff[i] = row * cell;
+    }
 }
 
 // actually not needed
@@ -122,6 +134,17 @@ void donut_pixel(int idx) {
         R(5, 8, cB, sB);
 
         // screen_clear(idx);   // not needed
+        int grid = 1;
+        while (grid * grid < N_DONUTS)
+            grid++;
+            
+        int cell = NN / grid;
+
+        // dynamic scaling
+        int scale = cell / 80;
+        if (scale < 1)
+            scale = 1;
+
         int offsetx = xoff[idx], offsety = yoff[idx]; 
         
         int y = 0, x = 0;
@@ -130,7 +153,9 @@ void donut_pixel(int idx) {
                 if (x < 50) {
                     // scale x by K, y by 2K (so we have a round donut)
                     //   then offset by (offsetx,offsety)
-                    int xx=x*K+offsetx, yy=y*K*2+offsety;
+                    //int xx=x*K+offsetx, yy=y*K*2+offsety;
+                    int xx = x*scale + offsetx;
+                    int yy = y*scale*2 + offsety;
                     // PIXEL clr = b[k]; // blue only
                     PIXEL clr = int2rgb(b[idx][k]); // to a color spectrum
                     // W("fb %lx idx %d xx %d yy %d pitch %d",
