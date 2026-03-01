@@ -207,6 +207,11 @@ void donut_pixel(int idx) {
         /* ===== Q7: Frame-Level Yield ===== */
 
         frame++;
+
+        if (idx == 0 && frame > 150) {
+            printf("Donut %d exiting\n", idx);
+            exit_process(0);
+        }
         yield();
     }
 }
