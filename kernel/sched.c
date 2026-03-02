@@ -304,15 +304,16 @@ Caller must hold sched_lock  */
 static int wakeup_nolock(void *chan) {
     struct task_struct *p;
     int cnt = 0; 
-    // V("chan=%lx", (unsigned long)chan);
-	for (int i = 0; i < NR_TASKS; i ++) {
-		p = task[i]; 
-        // NB: it's possible that p == cur and should be woken up
-        if (p->state == TASK_UNUSED) continue; 
-        if (p->state == TASK_SLEEPING && p->chan == chan) {            
-            /* STUDENT: TODO: your code here */
-            I("wakeup cpu%d chan=%lx pid %d", cpuid(),
-                (unsigned long)p->chan, p->pid);
+
+    for (int i = 0; i < NR_TASKS; i++) {
+        p = task[i];
+        if (p->state == TASK_UNUSED)
+            continue;
+
+        if (p->state == TASK_SLEEPING && p->chan == chan) {
+            p->state = TASK_RUNNABLE;
+            p->chan = 0;
+            cnt++;
         }
     }
     return cnt; 
@@ -365,6 +366,8 @@ void sleep(void *chan, struct spinlock *lk) {
 
     /* Go to sleep. */
     /* STUDENT: TODO: your code here */
+    p->chan = chan;
+    p->state = TASK_SLEEPING;
 
     /* although the task has not used up the current tick, bill it regardless.
     thus this task will be disadvantaged in future scheduling  */
@@ -374,7 +377,7 @@ void sleep(void *chan, struct spinlock *lk) {
     know exists for sure. the idle task will return from the schedule() and 
     rls sched_lock. the next timertick will call schedule() and switch 
     to a normal task (if any)  */
-struct task_struct *idle = 0; /* STUDENT: TODO: replace this */
+struct task_struct *idle = idle_tasks[cpuid()]; /* STUDENT: TODO: replace this */
     mycpu()->proc = idle; 
     cpu_switch_to(p, idle);  
     

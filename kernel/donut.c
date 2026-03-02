@@ -208,8 +208,8 @@ void donut_pixel(int idx) {
 
         frame++;
 
-        if (idx == 0 && frame > 50) {
-            while(1);
+        if (idx == 0 && frame > 150) {
+            exit_process(0);
         }
         yield();
     }
