@@ -209,7 +209,6 @@ void donut_pixel(int idx) {
         frame++;
 
         if (idx == 0 && frame > 150) {
-            printf("Donut %d exiting\n", idx);
             exit_process(0);
         }
         yield();

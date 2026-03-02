@@ -506,10 +506,12 @@ void exit_process(int status) {
     will release sched_lock after sched_lock is released, the parent can proceed
     to recycle the zombie's kern stack (& task_struct), which is no longer used
     by any cpu  */
-    //panic("zombie exit");
+    
     struct task_struct *idle = idle_tasks[cpuid()];
     mycpu()->proc = idle;
     cpu_switch_to(p, idle);
+
+    panic("zombie exit");
 }
 
 /* Destroys a task: task_struct, kernel stack, etc. free a proc structure and
