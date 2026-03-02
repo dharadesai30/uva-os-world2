@@ -209,7 +209,7 @@ void donut_pixel(int idx) {
         frame++;
 
         if (idx == 0 && frame > 50) {
-            exit_process(0);
+            while(1);
         }
         yield();
     }
