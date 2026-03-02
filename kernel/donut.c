@@ -55,7 +55,7 @@ void donut_canvas_init(void) {
         grid++;
 
     int cell = NN / grid;
-    int scale = cell / 80
+    int scale = cell / 80;
 
     for (int i = 0; i < N_DONUTS; i++) {
         int row = i / grid;
